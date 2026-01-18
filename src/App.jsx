@@ -1,40 +1,87 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
-import { useAccount } from 'wagmi'
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { CONTRACTS } from './contracts/addresses'
+import { BasingCounterABI } from './contracts/BasingCounterABI'
+import { BasingNFTABI } from './contracts/BasingNFTABI'
 import './App.css'
 
 export default function App() {
-  const { address, isConnected } = useAccount()
+  const { address, isConnected, chainId } = useAccount()
   const [isStretched, setIsStretched] = useState(false)
   const [isSquareFading, setIsSquareFading] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
   const [sCount, setSCount] = useState(1)
-  const [currentWidth, setCurrentWidth] = useState(240) // Текущая ширина кнопки
-  const [showExtraS, setShowExtraS] = useState(false) // Показывать ли дополнительную 's' за квадратом
+  const [currentWidth, setCurrentWidth] = useState(240)
+  const [showExtraS, setShowExtraS] = useState(false)
 
-  const widthIncrement = 22 // Ширина одной буквы 's' при шрифте 32px Inter Bold
-  const stretchAmount = 160 // На сколько растягивается временно
+  const widthIncrement = 22
+  const stretchAmount = 160
+
+  // Contract interactions
+  const { writeContract, data: hash, isPending } = useWriteContract()
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash })
+
+  // Read user clicks from contract
+  const { data: userClicks, refetch: refetchClicks } = useReadContract({
+    address: chainId === 84532 ? CONTRACTS.baseSepolia.BasingCounter : undefined,
+    abi: BasingCounterABI,
+    functionName: 'getUserClicks',
+    args: address ? [address] : undefined,
+    enabled: !!address && chainId === 84532,
+  })
+
+  // Read total clicks from contract
+  const { data: totalClicks, refetch: refetchTotal } = useReadContract({
+    address: chainId === 84532 ? CONTRACTS.baseSepolia.BasingCounter : undefined,
+    abi: BasingCounterABI,
+    functionName: 'totalClicks',
+    enabled: chainId === 84532,
+  })
+
+  // Read user achievements
+  const { data: userAchievements, refetch: refetchAchievements } = useReadContract({
+    address: chainId === 84532 ? CONTRACTS.baseSepolia.BasingCounter : undefined,
+    abi: BasingCounterABI,
+    functionName: 'getUserAchievements',
+    args: address ? [address] : undefined,
+    enabled: !!address && chainId === 84532,
+  })
+
+  // Refetch data when transaction confirms
+  useEffect(() => {
+    if (isConfirmed) {
+      refetchClicks()
+      refetchTotal()
+      refetchAchievements()
+    }
+  }, [isConfirmed, refetchClicks, refetchTotal, refetchAchievements])
 
   const handleClick = () => {
     if (isAnimating) return
 
     setIsAnimating(true)
     setIsStretched(true)
-    setShowExtraS(true) // Показываем дополнительную 's' сразу с квадратом
+    setShowExtraS(true)
+
+    // Record click on-chain if wallet connected
+    if (isConnected && chainId === 84532) {
+      writeContract({
+        address: CONTRACTS.baseSepolia.BasingCounter,
+        abi: BasingCounterABI,
+        functionName: 'recordClick',
+      })
+    }
 
     setTimeout(() => {
-      setIsSquareFading(true) // Квадрат начинает исчезать (750ms transition)
+      setIsSquareFading(true)
     }, 1200)
 
-    // Ждём пока квадрат полностью исчезнет (1200 + 750 = 1950ms)
     setTimeout(() => {
-      // Добавляем 's' в основной текст и увеличиваем ширину
       setSCount(prev => prev + 1)
       setCurrentWidth(prev => prev + widthIncrement)
 
-      // Небольшая задержка для React, чтобы обновить DOM
       setTimeout(() => {
-        // Убираем квадрат и временную 's', схлопываем кнопку
         setIsStretched(false)
         setIsSquareFading(false)
         setShowExtraS(false)
@@ -57,6 +104,24 @@ export default function App() {
       <div className="wallet-section">
         <ConnectButton />
       </div>
+
+      {isConnected && chainId === 84532 && (
+        <div className="stats-section">
+          <div className="stat-card">
+            <div className="stat-label">Your Clicks</div>
+            <div className="stat-value">{userClicks ? userClicks.toString() : '0'}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label">Total Clicks</div>
+            <div className="stat-value">{totalClicks ? totalClicks.toString() : '0'}</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label">Achievements</div>
+            <div className="stat-value">{userAchievements ? userAchievements.length : '0'}</div>
+          </div>
+        </div>
+      )}
+
       <div className="container">
         <div
           className={`button ${isStretched ? 'stretched' : ''}`}
@@ -79,6 +144,10 @@ export default function App() {
             <span className="text-part">ing</span>
           </div>
         </div>
+
+        {isPending && <p className="status-text">Waiting for approval...</p>}
+        {isConfirming && <p className="status-text">Recording on-chain...</p>}
+        {isConfirmed && <p className="status-text success">Click recorded! ✓</p>}
 
         <button
           className="restart-button"
