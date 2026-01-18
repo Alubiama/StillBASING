@@ -1,7 +1,10 @@
 import { useState } from 'react'
+import { ConnectButton } from '@rainbow-me/rainbowkit'
+import { useAccount } from 'wagmi'
 import './App.css'
 
 export default function App() {
+  const { address, isConnected } = useAccount()
   const [isStretched, setIsStretched] = useState(false)
   const [isSquareFading, setIsSquareFading] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
@@ -51,6 +54,9 @@ export default function App() {
 
   return (
     <div className="app">
+      <div className="wallet-section">
+        <ConnectButton />
+      </div>
       <div className="container">
         <div
           className={`button ${isStretched ? 'stretched' : ''}`}
