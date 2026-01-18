@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 .claude/
+.env
+
+# Hardhat files
+cache
+artifacts
 
 # Editor directories and files
 .vscode/*
