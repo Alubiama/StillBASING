@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ConnectButton } from '@rainbow-me/rainbowkit'
+import { ConnectButton, useConnectModal } from '@rainbow-me/rainbowkit'
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { CONTRACTS } from './contracts/addresses'
 import { BasingCounterABI } from './contracts/BasingCounterABI'
@@ -8,6 +8,7 @@ import './App.css'
 
 export default function App() {
   const { address, isConnected, chainId } = useAccount()
+  const { openConnectModal } = useConnectModal()
   const [isStretched, setIsStretched] = useState(false)
   const [isSquareFading, setIsSquareFading] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
@@ -36,7 +37,18 @@ export default function App() {
     localStorage.setItem('dark_mode', darkMode)
   }, [darkMode])
 
-  // Contract interactions
+  // Auto-connect wallet for Base Mini Apps
+  useEffect(() => {
+    if (!isConnected && openConnectModal) {
+      // Auto-open connect modal after a short delay to avoid blocking initial render
+      const timer = setTimeout(() => {
+        openConnectModal()
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [isConnected, openConnectModal])
+
+  // Contract interactions with sponsored transactions
   const { writeContract, data: hash, isPending } = useWriteContract()
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash })
 
@@ -83,11 +95,14 @@ export default function App() {
     setShowExtraS(true)
 
     // Record click on-chain if wallet connected
+    // Using sponsored transactions for gasless experience
     if (isConnected && chainId === 84532) {
       writeContract({
         address: CONTRACTS.baseSepolia.BasingCounter,
         abi: BasingCounterABI,
         functionName: 'recordClick',
+        // Sponsored transaction - no gas fees for users
+        gas: undefined, // Let the network estimate gas
       })
     }
 
