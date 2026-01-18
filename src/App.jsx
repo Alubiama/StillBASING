@@ -14,9 +14,27 @@ export default function App() {
   const [sCount, setSCount] = useState(1)
   const [currentWidth, setCurrentWidth] = useState(240)
   const [showExtraS, setShowExtraS] = useState(false)
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    return !localStorage.getItem('onboarding_completed')
+  })
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem('dark_mode') === 'true' ||
+           window.matchMedia('(prefers-color-scheme: dark)').matches
+  })
+  const [activeNav, setActiveNav] = useState('play')
 
   const widthIncrement = 22
   const stretchAmount = 160
+
+  // Apply dark mode class to body
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add('dark-mode')
+    } else {
+      document.body.classList.remove('dark-mode')
+    }
+    localStorage.setItem('dark_mode', darkMode)
+  }, [darkMode])
 
   // Contract interactions
   const { writeContract, data: hash, isPending } = useWriteContract()
@@ -99,9 +117,67 @@ export default function App() {
     setShowExtraS(false)
   }
 
+  const handleCloseOnboarding = () => {
+    setShowOnboarding(false)
+    localStorage.setItem('onboarding_completed', 'true')
+  }
+
+  const toggleDarkMode = () => {
+    setDarkMode(prev => !prev)
+  }
+
   return (
     <div className="app">
+      {/* Onboarding Modal */}
+      {showOnboarding && (
+        <div className="onboarding-overlay">
+          <div className="onboarding-modal">
+            <h1>Welcome to Still Basing! 🔵</h1>
+            <div className="onboarding-content">
+              <p className="intro">An interactive on-chain experience on Base blockchain.</p>
+
+              <div className="feature-list">
+                <div className="feature-item">
+                  <span className="feature-icon">👆</span>
+                  <div>
+                    <h3>Click to Grow</h3>
+                    <p>Every click adds an 's' and records your action on-chain</p>
+                  </div>
+                </div>
+
+                <div className="feature-item">
+                  <span className="feature-icon">🏆</span>
+                  <div>
+                    <h3>Unlock Achievements</h3>
+                    <p>Reach milestones at 10, 50, 100, 500, and 1000 clicks</p>
+                  </div>
+                </div>
+
+                <div className="feature-item">
+                  <span className="feature-icon">🎨</span>
+                  <div>
+                    <h3>Earn NFTs</h3>
+                    <p>Claim unique NFTs for each achievement milestone</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="onboarding-note">
+                <strong>Note:</strong> Connect your wallet to Base Sepolia testnet to start. All clicks are recorded on-chain with sponsored transactions!
+              </div>
+            </div>
+
+            <button className="onboarding-button" onClick={handleCloseOnboarding}>
+              Get Started
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="wallet-section">
+        <button className="theme-toggle" onClick={toggleDarkMode} title={darkMode ? 'Light mode' : 'Dark mode'}>
+          {darkMode ? '☀️' : '🌙'}
+        </button>
         <ConnectButton />
       </div>
 
@@ -145,8 +221,18 @@ export default function App() {
           </div>
         </div>
 
-        {isPending && <p className="status-text">Waiting for approval...</p>}
-        {isConfirming && <p className="status-text">Recording on-chain...</p>}
+        {isPending && (
+          <p className="status-text">
+            <span className="loading-spinner"></span>
+            Waiting for approval...
+          </p>
+        )}
+        {isConfirming && (
+          <p className="status-text">
+            <span className="loading-spinner"></span>
+            Recording on-chain...
+          </p>
+        )}
         {isConfirmed && <p className="status-text success">Click recorded! ✓</p>}
 
         <button
@@ -156,6 +242,38 @@ export default function App() {
           Жесткий рестарт
         </button>
       </div>
+
+      {/* Bottom Navigation */}
+      <nav className="bottom-nav">
+        <button
+          className={`nav-item ${activeNav === 'play' ? 'active' : ''}`}
+          onClick={() => setActiveNav('play')}
+        >
+          <span className="nav-icon">🎮</span>
+          Play
+        </button>
+        <button
+          className={`nav-item ${activeNav === 'stats' ? 'active' : ''}`}
+          onClick={() => setActiveNav('stats')}
+        >
+          <span className="nav-icon">📊</span>
+          Stats
+        </button>
+        <button
+          className={`nav-item ${activeNav === 'nft' ? 'active' : ''}`}
+          onClick={() => setActiveNav('nft')}
+        >
+          <span className="nav-icon">🎨</span>
+          NFTs
+        </button>
+        <button
+          className={`nav-item ${activeNav === 'info' ? 'active' : ''}`}
+          onClick={() => setShowOnboarding(true)}
+        >
+          <span className="nav-icon">ℹ️</span>
+          Info
+        </button>
+      </nav>
     </div>
   )
 }
