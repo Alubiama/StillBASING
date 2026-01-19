@@ -18,7 +18,7 @@ export const PAYMASTER_CONFIG = {
   paymasterUrl: 'https://api.pimlico.io/v2/base-sepolia/rpc',
 
   // Whether paymaster is enabled
-  enabled: false, // Set to true after adding VITE_PIMLICO_API_KEY to .env
+  enabled: true, // Pimlico paymaster activated! 🚀
 
   // Provider name
   provider: 'Pimlico',
