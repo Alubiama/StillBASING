@@ -1,39 +1,41 @@
 /**
  * Paymaster configuration for Base Mini Apps
  *
- * To enable sponsored transactions:
- * 1. Go to https://portal.cdp.coinbase.com/
- * 2. Create a project and get your API key
- * 3. Add the API key to your environment variables
- * 4. Configure the paymaster in your wagmi setup
+ * Using Pimlico for sponsored (gasless) transactions
  *
- * For now, transactions will use user's gas fees
- * For production, you need to:
- * - Get Coinbase Developer Platform API key
- * - Configure paymaster endpoint
- * - Add VITE_CDP_API_KEY to .env file
+ * To enable:
+ * 1. Go to https://dashboard.pimlico.io/
+ * 2. Create account and get API key (FREE tier: 100k operations/month!)
+ * 3. Add VITE_PIMLICO_API_KEY to .env file
+ * 4. Set enabled: true below
+ * 5. Rebuild and enjoy gasless transactions!
+ *
+ * See PIMLICO_SETUP.md for detailed instructions
  */
 
 export const PAYMASTER_CONFIG = {
-  // Base Sepolia Paymaster endpoint (requires CDP API key)
-  paymasterUrl: 'https://api.developer.coinbase.com/rpc/v1/base-sepolia',
+  // Pimlico API endpoint for Base Sepolia
+  paymasterUrl: 'https://api.pimlico.io/v2/base-sepolia/rpc',
 
-  // Whether paymaster is enabled (set to false if no API key)
-  enabled: false, // Set to true after getting CDP API key
+  // Whether paymaster is enabled
+  enabled: false, // Set to true after adding VITE_PIMLICO_API_KEY to .env
 
-  // Instructions for setup
+  // Provider name
+  provider: 'Pimlico',
+
+  // Instructions
   setupInstructions: `
-    To enable sponsored (gasless) transactions:
+    To enable gasless transactions with Pimlico:
 
-    1. Visit https://portal.cdp.coinbase.com/
-    2. Create a new project
-    3. Get your API key from the project settings
-    4. Create .env file in project root with:
-       VITE_CDP_API_KEY=your_api_key_here
+    1. Visit https://dashboard.pimlico.io/
+    2. Create free account (100k ops/month free!)
+    3. Get your API key
+    4. Create .env file in project root:
+       VITE_PIMLICO_API_KEY=your_api_key_here
     5. Set enabled: true in this config
-    6. Rebuild the project
+    6. Rebuild: npm run build
 
-    Users will then enjoy gasless transactions!
+    That's it! Your users won't pay gas fees!
   `
 }
 
@@ -41,18 +43,16 @@ export const PAYMASTER_CONFIG = {
  * Get paymaster client configuration
  */
 export function getPaymasterClient() {
-  const apiKey = import.meta.env.VITE_CDP_API_KEY
+  const apiKey = import.meta.env.VITE_PIMLICO_API_KEY
 
   if (!apiKey || !PAYMASTER_CONFIG.enabled) {
-    console.info('Paymaster not configured. Users will pay gas fees.')
-    console.info(PAYMASTER_CONFIG.setupInstructions)
+    console.info('⚠️ Paymaster not configured. Users will pay gas fees.')
+    console.info('📖 See PIMLICO_SETUP.md for setup instructions')
     return null
   }
 
   return {
-    url: PAYMASTER_CONFIG.paymasterUrl,
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-    },
+    url: `${PAYMASTER_CONFIG.paymasterUrl}?apikey=${apiKey}`,
+    provider: PAYMASTER_CONFIG.provider,
   }
 }
