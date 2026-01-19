@@ -43,10 +43,12 @@ export const PAYMASTER_CONFIG = {
  * Get paymaster client configuration
  */
 export function getPaymasterClient() {
-  const apiKey = import.meta.env.VITE_PIMLICO_API_KEY
+  // Use environment variable or fallback to testnet API key
+  // For production mainnet, always use environment variable via GitHub Secrets
+  const apiKey = import.meta.env.VITE_PIMLICO_API_KEY || 'pim_EFhBGx6UZDFaivHtSKzkFt'
 
-  if (!apiKey || !PAYMASTER_CONFIG.enabled) {
-    console.info('⚠️ Paymaster not configured. Users will pay gas fees.')
+  if (!PAYMASTER_CONFIG.enabled) {
+    console.info('⚠️ Paymaster not enabled. Users will pay gas fees.')
     console.info('📖 See PIMLICO_SETUP.md for setup instructions')
     return null
   }

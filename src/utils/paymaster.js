@@ -5,9 +5,10 @@ import { PAYMASTER_CONFIG } from '../config/paymaster'
  * Returns null if paymaster is not configured
  */
 export function getPaymasterConfig() {
-  const apiKey = import.meta.env.VITE_PIMLICO_API_KEY
+  // Use environment variable or fallback to testnet API key
+  const apiKey = import.meta.env.VITE_PIMLICO_API_KEY || 'pim_EFhBGx6UZDFaivHtSKzkFt'
 
-  if (!apiKey || !PAYMASTER_CONFIG.enabled) {
+  if (!PAYMASTER_CONFIG.enabled) {
     return null
   }
 
@@ -22,7 +23,7 @@ export function getPaymasterConfig() {
  * Check if paymaster is enabled and configured
  */
 export function isPaymasterEnabled() {
-  const apiKey = import.meta.env.VITE_PIMLICO_API_KEY
+  const apiKey = import.meta.env.VITE_PIMLICO_API_KEY || 'pim_EFhBGx6UZDFaivHtSKzkFt'
   return PAYMASTER_CONFIG.enabled && !!apiKey
 }
 
