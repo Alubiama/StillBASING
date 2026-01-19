@@ -1,7 +1,7 @@
 {
-  "name": "Still Basing",
+  "name": "Still Basing - On-Chain Clicker",
   "short_name": "StillBasing",
-  "description": "Interactive on-chain achievement app built on Base blockchain",
+  "description": "Click to grow on Base blockchain. Earn achievements and claim NFTs with every milestone you reach.",
   "start_url": "/StillBASING/",
   "display": "standalone",
   "background_color": "#ffffff",
