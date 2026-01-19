@@ -91,7 +91,7 @@ export default function NFTScreen() {
     writeContract({
       address: CONTRACTS.baseSepolia.BasingNFT,
       abi: BasingNFTABI,
-      functionName: 'claimAchievementNFT',
+    functionName: 'claimNFT',
       args: [milestone],
     })
   }
