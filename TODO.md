@@ -16,6 +16,8 @@
 - ✅ GitHub Pages deployment workflow
 - ✅ **НОВОЕ:** Манифест Base Mini Apps (/.well-known/farcaster.json)
 - ✅ **НОВОЕ:** Open Graph метаданные для embed
+- ✅ **НОВОЕ:** Все изображения для Featured (icons, screenshots, OG images)
+- ✅ **НОВОЕ:** Coinbase Smart Wallet интеграция для спонсируемых транзакций
 
 **Контракты:**
 - BasingCounter: `0x9a561f3018F454e2D2dBB30a71f8C1Cd3a84404c`
@@ -25,24 +27,17 @@
 
 ## Что нужно сделать СРОЧНО для Featured
 
-### 1. ⚠️ Создать изображения для манифеста (КРИТИЧНО!)
-**Проблема:** В манифесте указаны ссылки на изображения, но файлов нет.
+### 1. ✅ Создать изображения для манифеста (ГОТОВО!)
+**Выполнено:**
+- ✅ `public/icon-1024.png` - иконка приложения (1024×1024px, PNG)
+- ✅ `public/splash-200.png` - splash screen (200×200px, PNG)
+- ✅ `public/hero-1200x630.png` - hero изображение для discovery (1200×630px)
+- ✅ `public/og-1200x630.png` - Open Graph изображение (1200×630px)
+- ✅ `public/screenshot-1.png` - скриншот Play экрана (1284×2778px portrait)
+- ✅ `public/screenshot-2.png` - скриншот Stats экрана (1284×2778px portrait)
+- ✅ `public/screenshot-3.png` - скриншот NFT экрана (1284×2778px portrait)
 
-**Что нужно создать:**
-- [ ] `public/icon-1024.png` - иконка приложения (1024×1024px, PNG)
-- [ ] `public/splash-200.png` - splash screen (200×200px, PNG)
-- [ ] `public/hero-1200x630.png` - hero изображение для discovery (1200×630px)
-- [ ] `public/og-1200x630.png` - Open Graph изображение (1200×630px)
-- [ ] `public/screenshot-1.png` - скриншот Play экрана (1284×2778px portrait)
-- [ ] `public/screenshot-2.png` - скриншот Stats экрана (1284×2778px portrait)
-- [ ] `public/screenshot-3.png` - скриншот NFT экрана (1284×2778px portrait)
-
-**Зачем:** Без этих изображений приложение НЕ БУДЕТ отображаться правильно в Base App и не пройдет валидацию для Featured.
-
-**Как создать:**
-- Можно использовать Figma, Canva, или любой графический редактор
-- Цвета бренда: синий #0000FF, белый #FFFFFF, черный #000000
-- Стиль: минималистичный, современный, Base брендинг
+**Результат:** Все изображения созданы и готовы для Featured валидации!
 
 ---
 
@@ -65,19 +60,20 @@
 
 ---
 
-### 4. Настроить Paymaster (КРИТИЧНО для Featured!)
-**Проблема:** Сейчас пользователи платят gas fees за каждую транзакцию.
+### 4. ✅ Настроить Paymaster (ГОТОВО!)
+**Выполнено:**
+- ✅ Интегрирован Coinbase Smart Wallet в wagmi config (`smartWalletOnly`)
+- ✅ Создан хук `usePaymasterCapabilities` для paymaster возможностей
+- ✅ Обновлен `PlayScreen.jsx` с использованием `useWriteContracts` (experimental)
+- ✅ Обновлен `NFTScreen.jsx` с использованием `useWriteContracts` (experimental)
+- ✅ Добавлена поддержка ERC-7677 paymaster через `useCapabilities`
 
-**Что нужно:**
-- [ ] Получить Coinbase Developer Platform API key на https://portal.cdp.coinbase.com/
-- [ ] Добавить в `.env` файл: `VITE_CDP_API_KEY=ваш_ключ`
-- [ ] В `src/config/paymaster.js` изменить `enabled: false` на `enabled: true`
-- [ ] Интегрировать paymaster в wagmi config
-- [ ] Протестировать спонсируемые транзакции
+**Как работает:**
+- Smart Wallet автоматически определяет возможность спонсирования
+- При наличии paymaster - транзакции БЕСПЛАТНЫЕ для пользователей
+- Отображаются статусы "Recording (gasless)..." и "(No gas fees!)"
 
-**Зачем:** Для Featured Mini Apps транзакции ДОЛЖНЫ быть бесплатными для пользователей! Это обязательное требование.
-
-**Документация:** См. `PAYMASTER_SETUP.md`
+**Важно:** Coinbase Smart Wallet автоматически поддерживает спонсируемые транзакции на Base через Base Paymaster
 
 ---
 
