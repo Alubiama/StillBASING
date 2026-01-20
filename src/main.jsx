@@ -8,8 +8,22 @@ import { config } from './wagmi'
 import './index.css'
 import '@rainbow-me/rainbowkit/styles.css'
 import App from './App.jsx'
+import sdk from '@farcaster/frame-sdk'
 
 const queryClient = new QueryClient()
+
+// Initialize Farcaster SDK and mark app as ready
+const initializeFarcasterSDK = async () => {
+  try {
+    const context = await sdk.context
+    console.log('Farcaster context:', context)
+    sdk.actions.ready()
+  } catch (error) {
+    console.log('Not running in Farcaster, skipping SDK initialization')
+  }
+}
+
+initializeFarcasterSDK()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
