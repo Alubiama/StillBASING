@@ -1,7 +1,10 @@
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { useState } from 'react'
+import { useAccount, useReadContract } from 'wagmi'
+import { useWriteContracts } from 'wagmi/experimental'
 import { CONTRACTS } from '../contracts/addresses'
 import { BasingCounterABI } from '../contracts/BasingCounterABI'
 import { BasingNFTABI } from '../contracts/BasingNFTABI'
+import { usePaymasterCapabilities } from '../hooks/usePaymasterCapabilities'
 
 const MILESTONES = [
   { clicks: 10, name: 'First Steps', description: 'Completed 10 clicks', emoji: '👣' },
@@ -13,6 +16,7 @@ const MILESTONES = [
 
 export default function NFTScreen() {
   const { address, isConnected, chainId } = useAccount()
+  const [isConfirmed, setIsConfirmed] = useState(false)
 
   // Read user clicks
   const { data: userClicks } = useReadContract({
@@ -73,9 +77,21 @@ export default function NFTScreen() {
     enabled: !!address && chainId === 84532,
   })
 
-  // Claim NFT
-  const { writeContract, data: hash, isPending } = useWriteContract()
-  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash })
+  // Sponsored transaction support using experimental hooks
+  const { capabilities, isPaymasterSupported } = usePaymasterCapabilities()
+
+  const { writeContracts, isPending } = useWriteContracts({
+    mutation: {
+      onSuccess: (id) => {
+        setIsConfirmed(true)
+        // Reset confirmation after 3 seconds
+        setTimeout(() => setIsConfirmed(false), 3000)
+      },
+      onError: (error) => {
+        console.error('NFT claim failed:', error)
+      },
+    },
+  })
 
   const claimedNFTs = {
     10: hasNFT10,
@@ -88,11 +104,16 @@ export default function NFTScreen() {
   const handleClaimNFT = (milestone) => {
     if (!isConnected || chainId !== 84532) return
 
-    writeContract({
-      address: CONTRACTS.baseSepolia.BasingNFT,
-      abi: BasingNFTABI,
-      functionName: 'claimNFT',
-      args: [milestone],
+    writeContracts({
+      contracts: [
+        {
+          address: CONTRACTS.baseSepolia.BasingNFT,
+          abi: BasingNFTABI,
+          functionName: 'claimNFT',
+          args: [milestone],
+        },
+      ],
+      capabilities, // Enable paymaster for gasless NFT claims
     })
   }
 
@@ -132,18 +153,12 @@ export default function NFTScreen() {
         {isPending && (
           <div className="status-message">
             <span className="loading-spinner"></span>
-            Waiting for approval...
-          </div>
-        )}
-        {isConfirming && (
-          <div className="status-message">
-            <span className="loading-spinner"></span>
-            Minting NFT...
+            {isPaymasterSupported ? 'Minting (gasless)...' : 'Waiting for approval...'}
           </div>
         )}
         {isConfirmed && (
           <div className="status-message success">
-            NFT claimed successfully! ✓
+            NFT claimed successfully! ✓ {isPaymasterSupported && '(No gas fees!)'}
           </div>
         )}
 
@@ -188,7 +203,7 @@ export default function NFTScreen() {
                     <button
                       className="claim-button"
                       onClick={() => handleClaimNFT(milestone.clicks)}
-                      disabled={isPending || isConfirming}
+                      disabled={isPending}
                     >
                       Claim NFT
                     </button>
