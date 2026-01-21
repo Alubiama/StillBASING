@@ -6,6 +6,7 @@ import { BasingCounterABI } from './contracts/BasingCounterABI'
 import PlayScreen from './screens/PlayScreen'
 import StatsScreen from './screens/StatsScreen'
 import NFTScreen from './screens/NFTScreen'
+import sdk from '@farcaster/frame-sdk'
 import './App.css'
 
 export default function App() {
@@ -19,6 +20,26 @@ export default function App() {
            window.matchMedia('(prefers-color-scheme: dark)').matches
   })
   const [activeNav, setActiveNav] = useState('play')
+
+  // Initialize Base SDK
+  useEffect(() => {
+    const initializeSDK = async () => {
+      try {
+        // Wait for SDK to be ready
+        const context = await sdk.context
+        console.log('Base SDK initialized:', context)
+
+        // Notify Base that the app is ready
+        sdk.actions.ready()
+      } catch (error) {
+        console.error('Failed to initialize Base SDK:', error)
+        // Still call ready even if context fails
+        sdk.actions.ready()
+      }
+    }
+
+    initializeSDK()
+  }, [])
 
   // Apply dark mode class to body
   useEffect(() => {
