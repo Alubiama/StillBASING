@@ -18,5 +18,5 @@ const copyWellKnownPlugin = () => ({
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), copyWellKnownPlugin()],
-  base: '/StillBASING/',
+  base: '/', // Root domain for alubiama.github.io
 })
