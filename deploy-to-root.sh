@@ -34,6 +34,9 @@ fi
 echo "✅ Build успешен!"
 echo ""
 
+# Сохранить текущую директорию
+SOURCE_DIR=$(pwd)
+
 # Клонирование alubiama.github.io
 TEMP_DIR=$(mktemp -d)
 echo "📥 Клонирование alubiama.github.io..."
@@ -55,7 +58,7 @@ find . -maxdepth 1 ! -name '.git' ! -name 'README.md' ! -name '.' ! -name '..' -
 
 # Копирование новых файлов из dist
 echo "📋 Копирование новых файлов..."
-cp -r "$OLDPWD/dist/"* .
+cp -r "$SOURCE_DIR/dist/"* .
 
 # Проверка что файлы скопировались
 if [ ! -f "index.html" ]; then
@@ -71,7 +74,7 @@ echo "💾 Создание коммита..."
 git add .
 
 # Получить короткий хеш последнего коммита из StillBASING
-cd "$OLDPWD"
+cd "$SOURCE_DIR"
 COMMIT_HASH=$(git rev-parse --short HEAD)
 cd "$TEMP_DIR/alubiama.github.io"
 
@@ -124,5 +127,5 @@ else
 fi
 
 # Cleanup
-cd "$OLDPWD"
+cd "$SOURCE_DIR"
 rm -rf "$TEMP_DIR"
